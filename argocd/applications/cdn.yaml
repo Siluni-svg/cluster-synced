@@ -1,0 +1,26 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+
+metadata:
+  name: images
+  namespace: argocd
+
+spec:
+  project: default
+
+  source:
+    repoURL: git@github.com:Siluni-svg/cluster-synced.git
+    targetRevision: main
+    path: apps/cdn
+
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: images
+
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+
+    syncOptions:
+      - CreateNamespace=true

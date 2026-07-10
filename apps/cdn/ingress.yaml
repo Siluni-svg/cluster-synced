@@ -1,0 +1,28 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+
+metadata:
+  name: images
+  namespace: images
+
+spec:
+  ingressClassName: traefik
+
+  tls:
+  - hosts:
+    - cdn.siluni.fr
+    secretName: images-tls
+
+  rules:
+  - host: cdn.siluni.fr
+
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+
+        backend:
+          service:
+            name: images
+            port:
+              number: 80

@@ -1,0 +1,61 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: acpl-forum
+  annotations:
+    link.argocd.argoproj.io/external-link: 'https://apworld.siluni.fr'
+spec:
+  replicas: 2
+  revisionHistoryLimit: 2
+  selector:
+    matchLabels:
+      app: acpl-forum
+  template:
+    metadata:
+      labels:
+        app: acpl-forum
+    spec:
+      containers:
+        - name: acpl-forum
+          image: acpl-forum
+          volumeMounts:
+          - name: images
+            mountPath: /app/public/images
+          ports:
+            - containerPort: 80
+          resources:
+            requests:
+              memory: "128Mi"
+              cpu: "100m"
+              ephemeral-storage: "128Mi"
+            limits:
+              memory: "256Mi"
+              cpu: "500m"
+              ephemeral-storage: "512Mi"
+          env:
+            - name: IMAGES_BASE_URL
+              value: https://cdn.siluni.fr/images
+          envFrom:
+            - secretRef:
+                name: forum-secret
+          readinessProbe:
+            httpGet:
+              path: /health/ready
+              port: 80
+            initialDelaySeconds: 5
+            periodSeconds: 10
+            timeoutSeconds: 2
+            failureThreshold: 3
+          livenessProbe:
+            httpGet:
+              path: /health/live
+              port: 80
+            initialDelaySeconds: 5
+            periodSeconds: 10
+            timeoutSeconds: 2
+            failureThreshold: 3
+
+      volumes:
+        - name: images
+          persistentVolumeClaim:
+            claimName: images

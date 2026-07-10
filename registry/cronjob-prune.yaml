@@ -1,0 +1,105 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: registry-prune-script
+  namespace: registry
+data:
+  prune.py: |
+    #!/usr/bin/env python3
+    import os, json, sys, urllib.request, urllib.error
+
+    REGISTRY_URL = os.environ.get("REGISTRY_URL", "http://registry.registry.svc.cluster.local:5000")
+    KEEP = int(os.environ.get("KEEP", "3"))
+    MANIFEST_ACCEPT = (
+        "application/vnd.oci.image.manifest.v1+json,"
+        "application/vnd.docker.distribution.manifest.v2+json"
+    )
+
+    def api(path, method="GET", accept=None):
+        req = urllib.request.Request(f"{REGISTRY_URL}{path}", method=method)
+        if accept:
+            req.add_header("Accept", accept)
+        try:
+            with urllib.request.urlopen(req) as r:
+                return r.read().decode(), dict(r.headers)
+        except urllib.error.HTTPError as e:
+            if e.code != 404:
+                print(f"  HTTP {e.code} {path}", file=sys.stderr)
+            return None, {}
+
+    def get_json(path, accept=None):
+        body, h = api(path, accept=accept)
+        return (json.loads(body) if body else None), h
+
+    catalog, _ = get_json("/v2/_catalog?n=1000")
+    if not catalog:
+        print("Cannot reach registry", file=sys.stderr)
+        sys.exit(1)
+
+    for repo in catalog.get("repositories", []):
+        tags_data, _ = get_json(f"/v2/{repo}/tags/list")
+        tags = (tags_data or {}).get("tags") or []
+        if not tags:
+            print(f"{repo}: no tags")
+            continue
+
+        print(f"{repo}: {len(tags)} tag(s)")
+        entries = []
+
+        for tag in tags:
+            manifest, headers = get_json(f"/v2/{repo}/manifests/{tag}", accept=MANIFEST_ACCEPT)
+            if not manifest:
+                continue
+            digest = headers.get("Docker-Content-Digest") or headers.get("docker-content-digest", "")
+            config_digest = (manifest.get("config") or {}).get("digest", "")
+            if not config_digest:
+                continue
+            config, _ = get_json(f"/v2/{repo}/blobs/{config_digest}")
+            labels = (((config or {}).get("config") or {}).get("Labels") or
+                      ((config or {}).get("container_config") or {}).get("Labels") or {})
+            entries.append({"tag": tag, "date": labels.get("build-date", ""), "digest": digest})
+
+        entries.sort(key=lambda x: x["date"], reverse=True)
+
+        for i, e in enumerate(entries):
+            if i < KEEP:
+                print(f"  keep   {e['tag']} (build-date={e['date']})")
+            elif e["digest"]:
+                print(f"  delete {e['tag']} (build-date={e['date']})")
+                api(f"/v2/{repo}/manifests/{e['digest']}", method="DELETE")
+            else:
+                print(f"  skip   {e['tag']} (no digest)")
+
+    print("Prune done.")
+---
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: registry-prune
+  namespace: registry
+spec:
+  schedule: "0 3 * * *"
+  concurrencyPolicy: Forbid
+  successfulJobsHistoryLimit: 3
+  failedJobsHistoryLimit: 1
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          restartPolicy: OnFailure
+          containers:
+            - name: prune
+              image: python:3-alpine
+              command: ["python3", "/scripts/prune.py"]
+              env:
+                - name: REGISTRY_URL
+                  value: "http://registry.registry.svc.cluster.local:5000"
+                - name: KEEP
+                  value: "3"
+              volumeMounts:
+                - name: script
+                  mountPath: /scripts
+          volumes:
+            - name: script
+              configMap:
+                name: registry-prune-script

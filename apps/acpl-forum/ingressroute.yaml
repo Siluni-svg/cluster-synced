@@ -1,0 +1,18 @@
+apiVersion: traefik.io/v1alpha1
+kind: IngressRoute
+metadata:
+  name: acpl-forum
+spec:
+  entryPoints:
+    - web
+    - websecure
+  routes:
+    - match: Host(`apworld.siluni.fr`)
+      kind: Rule
+      middlewares:
+        - name: acpl-forum-headers
+      services:
+        - name: acpl-forum-service
+          port: 80
+  tls: 
+    secretName: apworld-tls

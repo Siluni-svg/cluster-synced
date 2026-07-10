@@ -1,0 +1,18 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+namespace: acpl-forum
+resources:
+  - deployment-cronjob.yaml
+  - deployment-serveur.yaml
+  - service.yaml
+  - ingressroute.yaml
+  - middleware.yaml
+  - pv.yaml
+  - pvc.yaml
+  - certificate.yaml
+images:
+  - name: acpl-forum
+    newName: registry.siluni.fr/siluni-svg/acpl-forum
+    newTag: "8c426465"
+generators:
+  - ksops-generator.yaml

@@ -1,0 +1,37 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: apworld-worker
+spec:
+  replicas: 1
+  revisionHistoryLimit: 0
+  selector:
+    matchLabels:
+      app: apworld-worker
+  template:
+    metadata:
+      labels:
+        app: apworld-worker
+    spec:
+      containers:
+        - name: worker
+          image: acpl-forum
+          command:
+            - php
+            - bin/console
+            - messenger:consume
+            - scheduler_default
+            - --time-limit=3600
+            - --memory-limit=256M
+          resources:
+            requests:
+              memory: "64Mi"
+              cpu: "50m"
+              ephemeral-storage: "128Mi"
+            limits:
+              memory: "256Mi"
+              cpu: "250m"
+              ephemeral-storage: "512Mi"
+          envFrom:
+            - secretRef:
+                name: forum-secret

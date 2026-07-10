@@ -1,0 +1,15 @@
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: images
+  namespace: images
+
+spec:
+  accessModes:
+  - ReadOnlyMany
+
+  storageClassName: nfs
+
+  resources:
+    requests:
+      storage: 1Ti

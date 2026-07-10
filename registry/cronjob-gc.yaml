@@ -1,0 +1,65 @@
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: registry-gc
+  namespace: registry
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: registry-gc
+  namespace: registry
+rules:
+  - apiGroups: [""]
+    resources: ["pods"]
+    verbs: ["get", "list"]
+  - apiGroups: [""]
+    resources: ["pods/exec"]
+    verbs: ["create"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: registry-gc
+  namespace: registry
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: registry-gc
+subjects:
+  - kind: ServiceAccount
+    name: registry-gc
+    namespace: registry
+---
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: registry-gc
+  namespace: registry
+spec:
+  schedule: "30 3 * * *"
+  concurrencyPolicy: Forbid
+  successfulJobsHistoryLimit: 3
+  failedJobsHistoryLimit: 1
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          serviceAccountName: registry-gc
+          restartPolicy: OnFailure
+          containers:
+            - name: gc
+              image: bitnami/kubectl:latest
+              command:
+                - /bin/bash
+                - -c
+                - |
+                  POD=$(kubectl get pods -n registry -l app=registry -o jsonpath='{.items[0].metadata.name}')
+                  if [ -z "$POD" ]; then
+                    echo "No registry pod found" >&2
+                    exit 1
+                  fi
+                  echo "Running garbage-collect on pod: $POD"
+                  kubectl exec -n registry "$POD" -- /bin/registry garbage-collect \
+                    --delete-untagged \
+                    /etc/docker/registry/config.yml

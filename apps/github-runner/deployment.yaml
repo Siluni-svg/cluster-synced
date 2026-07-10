@@ -1,0 +1,56 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: github-runner
+  labels:
+    app: github-runner
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: github-runner
+  template:
+    metadata:
+      labels:
+        app: github-runner
+    spec:
+      containers:
+        - name: github-runner
+          image: myoung34/docker-github-actions-runner:latest
+          securityContext:
+            privileged: true
+          env:
+            - name: REPO_URL
+              value: https://github.com/Siluni-svg/acpl-forum
+            - name: RUNNER_SCOPE
+              value: repo
+            - name: RUNNER_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.name
+            - name: LABELS
+              value: self-hosted,acpl-forum,k8s
+            - name: START_DOCKER_SERVICE
+              value: "true"
+            - name: ACCESS_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: runner-secret
+                  key: ACCESS_TOKEN
+          resources:
+            requests:
+              memory: "512Mi"
+              cpu: "250m"
+            limits:
+              memory: "2Gi"
+              cpu: "1"
+          volumeMounts:
+            - name: docker-data
+              mountPath: /var/lib/docker
+            - name: work
+              mountPath: /home/runner/_work
+      volumes:
+        - name: docker-data
+          emptyDir: {}
+        - name: work
+          emptyDir: {}

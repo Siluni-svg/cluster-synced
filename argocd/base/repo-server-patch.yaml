@@ -1,0 +1,46 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: argocd-repo-server
+  namespace: argocd
+spec:
+  template:
+    spec:
+      initContainers:
+        - name: install-ksops
+          image: viaductoss/ksops:v4.3.3
+          command: ["/bin/sh", "-c"]
+          args:
+            - |
+              set -e
+              mkdir -p /plugin/viaduct.ai/v1/ksops
+              cp /usr/local/bin/ksops /plugin/viaduct.ai/v1/ksops/ksops
+              chmod +x /plugin/viaduct.ai/v1/ksops/ksops
+          volumeMounts:
+            - name: ksops-plugin
+              mountPath: /plugin
+
+      containers:
+        - name: argocd-repo-server
+          env:
+            - name: XDG_CONFIG_HOME
+              value: /home/argocd/.config
+            - name: KUSTOMIZE_PLUGIN_HOME
+              value: /home/argocd/.config/kustomize/plugin
+            - name: SOPS_AGE_KEY_FILE
+              value: /age-keys/keys.txt
+
+          volumeMounts:
+            - name: ksops-plugin
+              mountPath: /home/argocd/.config/kustomize/plugin
+            - name: sops-age-key
+              mountPath: /age-keys/keys.txt
+              subPath: keys.txt
+
+      volumes:
+        - name: ksops-plugin
+          emptyDir: {}
+
+        - name: sops-age-key
+          secret:
+            secretName: sops-age

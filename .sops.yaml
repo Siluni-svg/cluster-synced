@@ -1,0 +1,19 @@
+creation_rules:
+  - path_regex: .*\.sops\.ya?ml
+    age: age1puesr5alxtmnn7lsf94az9t4cmk577z9pklvrse3mgkrneg8zaqquthqh8
+    encrypted_regex: ^(data|stringData)$
+sops:
+  age:
+    - enc: |
+        -----BEGIN AGE ENCRYPTED FILE-----
+        YWdlLWVuY3J5cHRpb24ub3JnL3YxCi0+IFgyNTUxOSAvS25OUytHdXQ0MmlCY096
+        eFBJSjlSSlBSUVhybVZJU1hMZ3h4RHVyT0ZVCklwdURyTG5UZVdVUzRkSHNqbExT
+        MEhQdzFBU2FpWUpSVDdxamw5c1RqVlUKLS0tIGRMTHEzbkx2WnVZRll5c1ROSDVk
+        SmpCNDIyVFBkV3VXWW1KSVhJMFBVWVkKxexBJUgRvQ/C6LZ9ZJ2vzCTIpVPY/CPT
+        JY3yhmupU4kTfCUq6l9nWluiamZGaecZhfQfRodo8+wkIdqvEq21WA==
+        -----END AGE ENCRYPTED FILE-----
+      recipient: age1puesr5alxtmnn7lsf94az9t4cmk577z9pklvrse3mgkrneg8zaqquthqh8
+  encrypted_regex: ^(data|stringData)$
+  lastmodified: "2026-06-17T17:32:30Z"
+  mac: ENC[AES256_GCM,data:G2Si7pUGKDOs53z8dSr8DDuKkxglcIu0Rq7duXkiqgVkqSrrkc7tTRZL20Y/pg6nwJ1yY6MjWw9hnlJkKC68IOoLsdUnIGHd48AhIY27IJdJmPP18PhYtpBqkyZmj0qSoLwwKp/55yMTDqR1fhjpZ2KIEMbHkGek5EXcVCiq44o=,iv:O3+l8zzG2JNvmZYkOCig6SeUgtUXh7V+Z44A49RKHvM=,tag:Mvcv4IZLByCzhQICwf8xGw==,type:str]
+  version: 3.13.1
