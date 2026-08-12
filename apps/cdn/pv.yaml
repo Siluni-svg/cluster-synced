@@ -9,7 +9,9 @@ spec:
     - ReadOnlyMany
   persistentVolumeReclaimPolicy: Retain
   storageClassName: nfs
-
+  claimRef:
+    namespace: images
+    name: images
   nfs:
     server: 192.168.0.17
     path: /volume1/archipelago

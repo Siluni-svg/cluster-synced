@@ -3,13 +3,13 @@ kind: PersistentVolumeClaim
 metadata:
   name: images
   namespace: images
-
+  annotations:
+    argocd.argoproj.io/sync-options: Delete=false
 spec:
   accessModes:
-  - ReadOnlyMany
-
+    - ReadOnlyMany
   storageClassName: nfs
-
+  volumeName: images-pv
   resources:
     requests:
       storage: 1Ti
