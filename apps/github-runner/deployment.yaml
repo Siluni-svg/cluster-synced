@@ -16,7 +16,7 @@ spec:
     spec:
       containers:
         - name: github-runner
-          image: myoung34/docker-github-actions-runner:latest
+          image: myoung34/github-runner:latest
           securityContext:
             privileged: true
           env:
