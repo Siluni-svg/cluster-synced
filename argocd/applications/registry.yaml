@@ -7,7 +7,7 @@ spec:
   project: default
 
   source:
-    repoURL: git@github.com:Siluni-svg/cluster-synced.git
+    repoURL: https://github.com/Siluni-svg/cluster-synced.git
     targetRevision: main
     path: registry
 
