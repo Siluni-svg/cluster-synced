@@ -3,7 +3,7 @@ kind: Deployment
 metadata:
   name: acpl-forum
   annotations:
-    link.argocd.argoproj.io/external-link: 'https://apworld.siluni.fr'
+    link.argocd.argoproj.io/external-link: "https://apworld.siluni.fr"
 spec:
   replicas: 2
   revisionHistoryLimit: 2
@@ -19,8 +19,8 @@ spec:
         - name: acpl-forum
           image: acpl-forum
           volumeMounts:
-          - name: images
-            mountPath: /app/public/images
+            - name: images
+              mountPath: /app/public/images
           ports:
             - containerPort: 80
           resources:
@@ -34,7 +34,7 @@ spec:
               ephemeral-storage: "512Mi"
           env:
             - name: IMAGES_BASE_URL
-              value: https://cdn.siluni.fr/images
+              value: https://cdn.siluni.fr/
           envFrom:
             - secretRef:
                 name: forum-secret
