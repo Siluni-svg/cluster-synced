@@ -23,6 +23,7 @@ spec:
             - scheduler_default
             - --time-limit=3600
             - --memory-limit=256M
+            - -vv
           resources:
             requests:
               memory: "64Mi"
