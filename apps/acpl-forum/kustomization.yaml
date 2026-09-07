@@ -13,6 +13,6 @@ resources:
 images:
   - name: acpl-forum
     newName: registry.siluni.fr/siluni-svg/acpl-forum
-    newTag: "77668292"
+    newTag: "d883c016"
 generators:
   - ksops-generator.yaml
