@@ -15,6 +15,16 @@ spec:
       labels:
         app: speech
     spec:
+      initContainers:
+        - name: prepare-model-cache
+          image: busybox:1.37
+          command:
+            - sh
+            - -c
+            - mkdir -p /models/hub
+          volumeMounts:
+            - name: models
+              mountPath: /models
       containers:
         - name: speaches
           image: ghcr.io/speaches-ai/speaches:latest-cpu
@@ -24,6 +34,8 @@ spec:
           env:
             - name: HF_HOME
               value: /models
+            - name: HF_HUB_CACHE
+              value: /models/hub
           volumeMounts:
             - name: models
               mountPath: /models
