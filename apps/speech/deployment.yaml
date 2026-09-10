@@ -21,7 +21,7 @@ spec:
           command:
             - sh
             - -c
-            - mkdir -p /models/hub
+            - mkdir -p /models/hub && chmod 777 /models/hub
           volumeMounts:
             - name: models
               mountPath: /models
